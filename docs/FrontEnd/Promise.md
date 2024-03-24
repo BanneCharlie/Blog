@@ -1,3 +1,4 @@
+# Promise
 ## Promise的定义和使用
 
 理解 : Promise是JS中异步编程的解决方案;语法层次上Promise为一个构造函数;
