@@ -76,7 +76,7 @@
 
    - 500~599（服务器端错误状态码）服务器处理请求出错
 
-     ![image-20220402104120102](https://banne.oss-cn-shanghai.aliyuncs.com/Java/202204021059720.png)
+     ![image-20220402104120102](https://notebook-img.oss-cn-shanghai.aliyuncs.com/git-img/202204021059720.png)
 
      响应头信息
 
@@ -415,6 +415,7 @@ app.listen(8000,()=>{
             if(xhr.status>=200 && xhr.status<300){
                 console.log(xhr.response);
             }
+
         }
     }
     });

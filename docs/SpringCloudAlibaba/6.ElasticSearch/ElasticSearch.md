@@ -805,13 +805,13 @@ GET /index database name/_search
   }
   ```
 
-  - function_score:算分函数查询,可以控制文档相关性算分,控制文档排名;
-  
+  - function_score: 算分函数查询,可以控制文档相关性算分,控制文档排名;
+
   *算分函数查询的关键部分 :*
 
-  1. 过滤条件 决定哪些文档的算分被修改
-  2. 算分函数 决定函数算分的算法
-  3. 运算模式 决定最终算分结果
+  1. 过滤条件：决定哪些文档的算分被修改
+  2. 算分函数：决定函数算分的算法
+  3. 运算模式：决定最终算分结果
 
   ```json
   // 通过算分函数查询,控制文档相关性算分
@@ -926,11 +926,11 @@ GET /index database name/_search
 
   `单点模式,没有太大影响`
 
-  ![image-20231230113340122](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20231230113340122.png)
+  ![image-20231230113340122](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20231230113340122.png) 
 
   `集群模式,性能下降巨大`
 
-  ![image-20231230113601730](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20231230113601730.png)
+  ![image-20231230113601730](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20231230113601730.png) 
 
   *分页查询的常见实现方案以及优缺点：*
 
@@ -948,7 +948,7 @@ GET /index database name/_search
     - 缺点：会有额外内存消耗，并且搜索结果是非实时的
     - 场景：海量数据的获取和迁移。从ES7.1开始不推荐，建议用 after search方案。
 
-- 高亮显示: 给文档中所有关键字添加一个标签<em>页面给<em>标签添加样式
+- 高亮显示: 给文档中所有关键字添加一个标签`<em>页面给<em>标签`添加样式
 
   ```json
   GET /hotel/_search

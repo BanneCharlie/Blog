@@ -1,14 +1,12 @@
 import { defineConfig } from "vitepress";
 import { set_sidebar } from "../utils/auto-gen-sidebar.mjs"; // 改成自己的路径
-// https://vitepress.dev/reference/site-config
+
 export default defineConfig({
   head: [["link", { rel: "icon", href: "/logo.svg" }]],
   title: "CORSAIR | BLOG",
   description: "雨露润余春，椛开落满城。",
   base:"/Blog/",
   markdown: {
-    // 代码块风格
-    // theme: 'material-theme-palenight',
     theme:'github-light',
     // 代码块显示行数
     lineNumbers: true,
@@ -43,7 +41,7 @@ export default defineConfig({
       "/docs/FrontEnd/Vue3": set_sidebar("docs/FrontEnd/Vue3"),
       "/docs/BackEnd/Spring": set_sidebar("docs/BackEnd/Spring"),
       "/docs/BackEnd/Mybatis/Mybatis": set_sidebar("docs/BackEnd/Mybatis"),
-      
+
       "/docs/BackEnd/Mysql": set_sidebar("docs/BackEnd/Mysql"),
       "/docs/BackEnd/Redis": set_sidebar("docs/BackEnd/Redis"),
       "/docs/Interview": set_sidebar("docs/Interview"),
@@ -57,11 +55,8 @@ export default defineConfig({
 
       // 微服务的侧边栏
       "/docs/SpringCloudAlibaba": set_sidebar("docs/SpringCloudAlibaba"),
-  
+
     },
-    
-    // sidebar:false,
-    // aside: "left", // 设置右侧侧边栏在左侧显示
 
     socialLinks: [
       { icon: "github", link: "https://github.com/BanneCharlie/Note.git" },
