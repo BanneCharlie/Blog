@@ -2,7 +2,7 @@ import { defineConfig } from "vitepress";
 import { set_sidebar } from "../utils/auto-gen-sidebar.mjs"; // 改成自己的路径
 
 export default defineConfig({
-  head: [["link", { rel: "icon", href: "/logo.svg" }]],
+  head: [["link", { rel: "icon", href: "https://banne.oss-cn-shanghai.aliyuncs.com/Java/logo.svg" }]],
   title: "CORSAIR | BLOG",
   description: "雨露润余春，椛开落满城。",
   base:"/Blog/",
