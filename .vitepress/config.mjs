@@ -5,7 +5,7 @@ export default defineConfig({
   head: [["link", { rel: "icon", href: "/logo.svg" }]],
   title: "CORSAIR | BLOG",
   description: "雨露润余春，椛开落满城。",
-  //base:"/Blog/",
+  base:"/Blog/",
   markdown: {
     theme:'github-light',
     // 代码块显示行数
