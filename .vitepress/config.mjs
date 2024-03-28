@@ -31,7 +31,7 @@ export default defineConfig({
 
       {text: "RabbitMQ",link: "/docs/SpringCloudAlibaba/5.RabbitMQ/RabbitMQ"},
 
-      { text: "Interview", link: "/docs/Interview/Interview" },
+      { text: "Interview", link: "/docs/Interview/Basic" },
     ],
 
     // 右侧导航栏默认索引
