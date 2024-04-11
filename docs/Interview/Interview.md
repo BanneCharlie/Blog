@@ -15,7 +15,7 @@
 *泛型的优缺点 :* 泛型是JDK5提供的一种新的特性,允许在定义类和接口的时候使用参数类型;声明的类型参数在使用时具体的类型来替换
 
 - 提高代码的复用性;比如以List接口为例,将String Integer等类型放入到List中.不使用泛型,存放String类型要写一个List接口
-- 安全性: 在泛型出现之前,类型转换之前需要运行时检查,类型出错程序注解GG 泛型会在编译时做类型的检查,无疑增加程序的安全性
+- 安全性: 在泛型出现之前,类型转换之前需要运行时检查,类型出错程序直接GG 泛型会在编译时做类型的检查,无疑增加程序的安全性
 - Java中的泛型通过类型擦除的方式实现, Java的泛型只存在编译期,Jvm是不会感知到泛型的
 
 *反射机制 :*
@@ -69,7 +69,7 @@
 - 不指定集合容量,默认为10  指定集合容量根据指定容量
 - ArrayList每次添加数据都会 通过size + 1 去比较容量,不满足容量将会进行1.5被扩容 
 
-*LinkedList 底层原理 :* 有序可重复数据,线程不安全
+*LinkedList 底层原理 :* 有序可重复数据,线程不安全  可以存放NULL数据
 
 - LinkedList通过双向链表进行实现
 - 并且标记头尾指针 每个位置存储 前置和后置指针+存储的数据
@@ -86,7 +86,7 @@
   - ArrayList插入和删除数据 除尾部进行效率O(1) 其余全为 O(n)
   - LinkedList 插入和删除数据 头部和尾部效率O(1)  其余全为O(n)
 - 线程安全
-  - 都是线程不安全的  方法内部使用,定义为局部变量  /  通过使用Collections.synchronizedList()方法创建
+  - 都是线程不安全的   成为线程安全  --> 方法内部使用,定义为局部变量  /  通过使用Collections.synchronizedList()方法创建
 
 
 
@@ -112,11 +112,108 @@
 
 *HashMap 的扩容机制 :*
 
-![image-20240319175042427](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240319175042427.png) 
+- 第一次添加数据初始化时数组长度,默认为16 以后每次扩容都是达到阈值 (array.length() * 0.75) 进行扩容
+- 初始化时设置容量, 桶数组的大小大于或等于这个初始化容量,并且为2的幂次方
+- 达到扩容阈值的时候, 为扩容之前容量的2倍
+- 扩容之后, 会重新计算所有元素的哈希值, 然后重新分配到新的桶中
+  - 没hash冲突的节点, 通过 hash & (newCap - 1) 计算新数组的索引位置
+  - 存在hash冲突的节点
+    - 红黑树直接走红黑树的添加
+    - 链表, 需要遍历链表, 可能需要拆分链表, hash & oldCap == 0 停留在原来的位置
+    - 不满足移动到 原来位置 + 增加的数组大小  
 
 *HashMap的寻址算法 :*
 
-![image-20240319175825274](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240319175825274.png) 
+- 实现计算对象的 hashCode()  进行二次哈希为了减少hash冲突
+- 将hashCode() >> 16 再进行异或运算,让hash分布更加均匀
+- 最后通过 hash & (capacity - 1) 提升性能,计算索引时效率较高(capacity容量为2^n)   hash & oldCap 保留原来位置,否则新位置 = 旧位置 + oldCap 
+
+*ConcurrentHashMap的底层原理 :*
+
+- JDK1.7 中ConcurrentHashMap 保证线程安全原理  --> 分段锁  ReentrantLock  +  CAS
+  - ConcurrentHashMap内部使用一个数组, 数组被分成多个 Segment, 每个段就是对应独立的哈希表, 想向哈希表中插入数据需要获取ReentrantLock获取不到通过CAS进行重试, 这种方式降低锁的粒度;
+  - 多线程访问 ConcurrentHashMap 时, 只有访问相同的 Segment 的线程才会争夺锁; 
+
+![image-20240403100252020](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240403100252020.png) 
+
+- JDK1.8 中 ConcurrentHashMap 保证线程的安全原理 --> CAS + Synchronized
+  - ConcurrentHashMap 使用 CAS 来保证对桶数组中的元素进行 插入 修改和删除操作的原子性;
+  - ConcurrentHashMap 使用锁分段技术, 将整个数组分割为多个段(Segment) 当对某个段进行操作时, 只需要通过Synchronized锁定该段的头节点, 而无需锁定整个ConcurrentHashMap,提升了并发的性能;
+
+![image-20240403100358861](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240403100358861.png) 
+
+# IO
+
+*用户空间和内核空间 :*
+
+- 进程的寻址空间会划分为两部分: 内核空间 用户空间
+- 用户空间只能执行受限命令 (Ring3) 不能直接调用系统资源, 必须通过内核空间的接口来进行访问
+- 内核空间可以执行特权命令 (Ring0) 调用一切系统资源
+
+![image-20240411140421322](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240411140421322.png) 
+
+`五种IO模型 :` 
+
+- 阻塞 IO 
+- 非阻塞 IO (NIO)
+- IO多路复用 ( NIO )
+- 信号驱动IO (Signal Driven IO)
+- 异步IO (Asynchronous IO) 
+
+## Blocking IO
+
+简介 : 阻塞IO模型中,用户进程在两个阶段(`等待数据传输阶段`--> 用户应用  `数据拷贝阶段`--> 内核  )都是阻塞的;
+
+![image-20240407120836235](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240407120836235.png) 
+
+## NonBlocking IO
+
+简介 : 非阻塞IO模型中,用户进程在第一个阶段(等待数据传输阶段)是非阻塞的 (循环执行对CPU有一定的影响) , 在第二个阶段(数据拷贝)是阻塞的;
+
+![image-20240407121821861](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240407121821861.png) 
+
+## Multiplexed IO
+
+简介 : 多路复用模型,以Linux系统为案例,单个线程来同时select监听多个FD(文件描述符),并在某个FD可读 可写时得到通知,从而避免无效的等待,充分利用CPU资源;
+
+*通知方式 :*
+
+- select   通过监视一组文件描述符(FD)的可读 可写 异常事件, 并在其中至少有一个文件进行就绪状态就唤醒进程, 使得进程可以执行相应的I/O操作
+  - select 需要将文件描述符集合从用户态拷贝到内核态, 同时具有文件描述符数量的限制 1024个; 
+  - 当出现满足条件的文件描述符 将整个集合从内核态拷贝到用户态; 
+
+
+![image-20240407124829075](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240407124829075.png) 
+
+- poll  通过监视一组文件描述符的就绪事件来唤醒进程
+  - poll 函数在内核态中维护了一个链表, 通过遍历链表来查找就绪文件的描述符, 因此性能得到提升; 
+
+- epoll    通知用户进程FD就绪同时,就把就绪的FD写入用户空间 
+  - 通过内核中的 epoll 文件描述集合(epollfd) 来监视文件描述符上的事件, 并通过回调函数来处理就绪的事件 (添加到双链表中)
+  - epoll不再需要向select / poll 遍历所有的文件描述符集合来查找就绪的FD,而是通过 红黑树 + 双向链表等数据结构, 使得在大量文化描述符的情况下依然高效  红黑树(存储需要监听的FD集合)  链表(记录就绪的FD)
+  - 也无需将 内核中所有FD集合拷贝到内核态  只需将双链表只中记录就绪的FD传递给用户态即可
+  - 两种工作模式:
+    - 水平触发(LT)  没有处理就绪的事件,下次会继续通知, 直到事件被处理 于select / poll模式相似; 
+    - 边缘触发(ET)  只会向用户态通知一次就绪的事件,下次不会再通知;
+
+
+![image-20240407132849560](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240407132849560.png) 
+
+![image-20240407123343516](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240407123343516.png) 
+
+`事件通知机制 :`
+
+![image-20240407134209731](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240407134209731.png) 
+
+## Signal Driven IO
+
+![image-20240407142832966](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240407142832966.png) 
+
+## Async IO
+
+![image-20240407143100404](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240407143100404.png) 
+
+![image-20240407143150562](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240407143150562.png)
 
 # SSM
 
@@ -191,7 +288,27 @@
 - @ComponentScan 注解扫描当前包以及子包
 - @EnableAutoConfiguration 实现自动化配置的核心注解,该注解通过@Import注解导入对应的配置器选择器;内部读取了此项目和该项目引入的jar包类路径下META-INF/spring.factories文件中的所有配置类的全类名; 这些配置类中所定义的Bean会根据条件注解所指定的条件来决定是否导入Spring容器中
 
-# Mysql
+# Mysql 
+
+![image-20240330143818196](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240330143818196.png)
+
+![image-20240330144403272](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240330144403272.png) 
+
+![image-20240330145051756](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240330145051756.png) 
+
+*MySqL相关日志 :*
+
+- binlog
+  - binglog日志是MySQL用于记录数据库中的所有DDL语句和DML语句, 主要用来对数据库进行数据的备份, 崩溃的数据恢复和数据复制等操作
+
+- redolog
+  - redolog主要记录事务管理, 主要用来恢复数据, 也是MySql用于实现崩溃恢复和数据持久性的一种机制
+  - 在事务的进行中,MySQL会将事务做了什么改动记录到redolog中,当系统发生崩溃或者异常的时候,MySQL会利用redolog中的记录信息进行恢复操作,将事务所做的修改持久化到磁盘中.
+- undolog
+  - undolog主要用来做数据的回滚操作.
+  - MySQL会将事务修改的数据记录到undolog中,如果事务需要回滚,则会从Undo log中找到相对应的记录来撤销事务所做的修改;
+
+
 
 *事务的特性以及隔离级别 :*
 
@@ -199,15 +316,17 @@
 
 ACID  
 
-- Atomicity(原子性)事务不可再分割的工作单元,要么同时成功要么同时失败
-- Consistency(一致性) 事务执行前后,数据的完整性不会被破坏
-- Isolation(隔离性) 事务之间存在隔离级别,防止多个事务之前的互相干扰
+- Atomicity(原子性)事务不可再分割的工作单元,要么同时成功要么同时失败   --> undolog
+- Consistency(一致性) 事务执行前后,数据的完整性不会被破坏  
+- Isolation(隔离性) 事务之间存在隔离级别,防止多个事务之前的互相干扰   --> 锁 / MVCC
   - 读未提交  RU    可能会出现脏读问题  --> A事务执行Insert,未commit  但是B事务读取到了A事务的Inset;
   - 读提交 RC       不会出现脏读,但会出现不可重复读问题 --> A事务第一次读取一条记录和第二次读取同一条记录内容不同(针对Update) B事务在A事务第二次读取这条记录时,进行了修改操作
-  - 可重复度 RR    不会出现脏读 可重复读的问题 但会出现幻读问题 --> A事务第一次查询条件读取到3条记录,第二次根据相同的查询结果读取到了2条记录  B事务在A事务第二次条件查询的时候,对表中的数据进行了Delete操作  导致了幻读
+  - 可重复度 RR    不会出现脏读 可重复读的问题 但会出现幻读问题 --> A事务第一次查询条 件读取到3条记录,第二次根据相同的查询结果读取到了2条记录  B事务在A事务第二次条件查询的时候,对表中的数据进行了Delete操作  导致了幻读
     - 解决幻读的方法  有两种  快照读 / 当前读
-  - 串行化  不允许多个事务并发访问
-- Durability(持久性) 事务一但提交或回滚对于数据库的操作是永久性的
+  - 串行化  不允许多个事务并发访问 
+- Durability(持久性) 事务一但提交或回滚对于数据库的操作是永久性的  --> redolog
+
+![image-20240330142729013](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240330142729013.png) 
 
 *快照读和当前读解决幻读问题 :*
 
@@ -220,7 +339,29 @@ ACID
 - 当前读 当执行 DML 语句 和 Select ... For Update等语句,这些操作会查询到当前版本的最新数据,然后再进行下一步操作;
 - 当执行Select ... For Update 操作时,条件查询到的结果集 会通过间隙锁将其锁住; 其他事务无法对锁住的结果进行插入和修改操作;
 
+
+
 *解析MVCC的工作流程 :* MVCC并发控制机制,他通过为每个读操作创建一个视图来实现读写分离,保证多个事务同时读写同一个数据时的一致性和并发性
+
+![image-20240330145926094](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240330145926094.png)
+
+隐藏字段
+
+![image-20240330150149647](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240330150149647.png)
+
+undolog
+
+
+
+readview
+
+![image-20240330150655469](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240330150655469.png)
+
+![image-20240330151122244](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240330151122244.png)
+
+
+
+![image-20240330160123413](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240330160123413.png) 
 
 ----
 
@@ -243,6 +384,10 @@ ACID
 *覆盖索引 :*
 
 - 通过索引进行条件查询,返回的数据在索引中可以获取,无需进行回表的操作;
+
+*索引下推 :*
+
+
 
 *最左前缀原则 :*
 
@@ -281,6 +426,10 @@ ACID
   - 垂直分表 冷热数据隔离,多表互相不影响
 
 # Redis
+
+![image-20240407143637480](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240407143637480.png) 
+
+![image-20240407143703629](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240407143703629.png) 
 
 *常用数据类型 :*  实际开发使用过 String类型 和 Hash类型 展开讲讲
 
@@ -332,6 +481,8 @@ ACID
 
 - 缓存穿透    查询一个不存在的数据,redis找不到 mysql也找不到,这样数据不会存放在redis中 每次请求都查询数据库
 
+  ![image-20240405170108080](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240405170108080.png) 
+
   - 缓存空值
 
     - 可以将这些key对应的值设置为null并方到缓存中,这样在出现查询这个key的请求时,直接返回
@@ -343,12 +494,20 @@ ACID
 
     ![image-20240320165730060](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240320165730060.png) 
 
-- 缓存击穿  当某个key值缓存过期了同时出现大量请求去访问此key值,瞬间击穿服务器直接访问数据库,数据库处于负载的情况
+- 缓存击穿  当某个key值缓存过期了同时出现大量请求去访问此key值,瞬间击穿服务器直接访问数据库,数据库处于负载的情况 
+  
   - 异步定时更新
     - 比如一个热点数据的过期时间为1个小时,那我们就每59分钟,定时任务去更新这个热点key,并重新设置过期时间
   - 互斥锁
     - Redis中根据key获取到的值为null时,先进行上锁然后从数据库加载,加载完毕后释放锁;若其他线程也请求key时,发现获取锁失败,则进行阻塞
+  - 逻辑过期
+  
+  ![image-20240405172518467](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240405172518467.png) 
+  
 - 缓存雪崩  大量缓存同时过期,或缓存宕机,所有请求去直接访问数据库,造成数据库高负载,影响性能,甚至数据库宕机
+  
+  ![image-20240405170525594](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240405170525594.png) 
+  
   - 不同的过期时间
     - 为了避免大量的缓存同一时间过期,可以把不同的key过期时间设置为不同的,并通过定时刷新的方式更新过期时间
   - 集群
@@ -360,6 +519,8 @@ ACID
   - Redis默认每个100ms就随机取一些设置的key,并检查是否过期,如果过期就删除;
 - 惰性删除
   - 当一个key过期时,不会立即在内存中删除,而是在访问这个key的时候才会触发删除操作 Redis的被动删除策略
+
+![image-20240407155202254](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240407155202254.png) 
 
 *Redis和数据库的一致性问题 :*
 
@@ -382,8 +543,6 @@ ACID
 *集群模式 :*
 
 ![image-20240320210328881](https://banne.oss-cn-shanghai.aliyuncs.com/Java/image-20240320210328881.png) 
-
-
 
 # RabbitMQ
 
